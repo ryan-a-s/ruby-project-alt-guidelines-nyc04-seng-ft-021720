@@ -1,4 +1,4 @@
-class CreateTradesTable < ActiveRecord::Migration[5.2]
+class CreateTrades < ActiveRecord::Migration[5.2]
   def change
     create_table :trades do |t|
       t.integer :stock_id, foreign_key: true

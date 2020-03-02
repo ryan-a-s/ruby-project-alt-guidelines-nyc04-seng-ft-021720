@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_02_214452) do
+ActiveRecord::Schema.define(version: 2020_03_02_222327) do
 
   create_table "stocks", force: :cascade do |t|
     t.string "stock_symbol"
-    t.integer "current_price"
+    t.float "current_price"
     t.string "category"
   end
 

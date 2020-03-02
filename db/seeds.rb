@@ -1,9 +1,9 @@
 # User 
-# puts "Creating Users"
-# 2.times do 
-#     User.create(name: Faker::FunnyName.name, balance: 50_000)
-# end 
-# puts "Users created"
+puts "Creating Users"
+2.times do 
+    User.create(name: Faker::FunnyName.name, balance: 50_000)
+end 
+puts "Users created"
 
 
 

@@ -7,4 +7,7 @@ gem "sqlite3", '~> 1.3.6'
 gem "pry"
 gem "require_all"
 gem "faker"
-gem "tty"
+gem 'tty-prompt'
+gem 'rest-client'
+gem 'tty-progressbar'
+gem 'tty-table'

@@ -1,6 +1,6 @@
 require_relative '../config/environment'
 
-puts "Lets make some trades!"
+puts "WELCOME TO LEE-TRADE!"
 
 user_cli
 

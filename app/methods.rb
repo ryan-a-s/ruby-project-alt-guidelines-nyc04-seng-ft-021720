@@ -2,17 +2,33 @@ require_relative '../config/environment'
 
 def user_cli
     prompt = TTY::Prompt.new
-    search_username(prompt)
+    user = search_username(prompt)
+    main_menu(prompt, user)
+end
+
+def main_menu(prompt, user)
+    prompt.select("What would you like to do today?") do |menu|
+        menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
+        menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
+        menu.choice 'View Portfolio', -> {user.check_stocks}
+        menu.choice 'Make a Trade', -> {user.make_trade(prompt)}
+        menu.choice 'Close Account', -> {user.close_account}
+    end    
 end
 
 # prompts user to search for stock symbol and displays symbol with current price
 ## eventually use TTY to select stock symbol from list based on the stocks user owns
 ## to do - display only stock symbol and current price without SQL commands
-def search_stock_symbol
-    puts "Please enter the stock symbol you're looking for"
-    stock = gets.chomp.upcase
-    found_stock = Stock.find_by(stock_symbol: stock)
-    puts "Stock #{stock} current price is #{found_stock.current_price}"
+def search_stock_symbol(prompt)
+    stock_array = Stock.all.map{|stock| stock.stock_symbol}
+    stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array)
+    found_stock = find_stock(stock_name)
+    puts "Stock #{stock_name} current price is $#{found_stock.current_price}"
+    return found_stock
+end
+
+def find_stock(stock_name)
+    Stock.find_by(stock_symbol: stock_name)
 end
 
 # prompts user to enter their username, makes sure username is valid

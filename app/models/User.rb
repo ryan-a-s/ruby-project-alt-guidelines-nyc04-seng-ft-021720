@@ -11,13 +11,14 @@ class User < ActiveRecord::Base
         self.save
     end
 
+#Makes a trade that corresponds with the user input, if the user does not have a suitable balance it rejects the trade.
     def make_trade
         puts "Which stock would you like to buy?"
         # use TTY to display list of stocks eventually
         stock_name_input = gets.chomp
         stock_name = Stock.find_by(stock_symbol: stock_name_input)
-        puts "The current stock price for #{stock_name} is #{stock_name.current_price}"
-        puts "Please enter the quantity of #{stock_name} you'd like to purchase"
+        puts "The current stock price for #{stock_name.stock_symbol} is #{stock_name.current_price}"
+        puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase"
         stock_qty = gets.chomp.to_i
         trade_total = (stock_qty * stock_name.current_price)
         if self.balance > trade_total
@@ -29,5 +30,16 @@ class User < ActiveRecord::Base
             puts "You do not have sufficient funds to complete this transaction."
         end
     end
+
+    def check_stocks
+
+    x = self.stocks.group(:user_id, :stock_id).sum(:stock_qty)
+
+
+
+    end 
+
+
+    
 
 end

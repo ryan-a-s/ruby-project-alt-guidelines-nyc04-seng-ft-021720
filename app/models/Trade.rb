@@ -1,6 +1,6 @@
 class Trade < ActiveRecord::Base
 
-    belongs_to :stocks
-    belongs_to :users
+    belongs_to :stock
+    belongs_to :user
 
 end

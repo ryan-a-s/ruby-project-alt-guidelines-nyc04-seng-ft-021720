@@ -8,6 +8,6 @@ puts "hello world"
 # calls method from User.rb
 ella = User.find(1)
 # ella.make_deposit
-ella.make_trade
+ella.check_stocks
 
 # search_username

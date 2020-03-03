@@ -31,15 +31,28 @@ class User < ActiveRecord::Base
         end
     end
 
+    # checking all stocks owned by user and the associated shares for each
     def check_stocks
-
-    x = self.stocks.group(:user_id, :stock_id).sum(:stock_qty)
-
-
-
+        # groups stocks owned by specified user and sums up the quantity per stock symbol
+        stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
+        stocks_qty.each do |key, value|
+            puts "You have #{value} shares of #{key}" # displays the amount of shares per stock symbol
+        end
+        stocks_qty
     end 
 
-
-    
+    # closes account and adds all funds to users :balance
+    def close_account
+        stocks_qty = check_stocks
+        total_amount = 0 # sets variable total_amount to 0
+        # iterates through each stock owned by the user, pulls the current price from the stock table
+        ## and muplies it by the quantity of stocks owned by user
+        stocks_qty.each do |key, value| 
+            total_amount += (Stock.find_by(stock_symbol: key).current_price * value)
+        end
+        self.update(balance: self.balance += total_amount) # adds the total amount to the users balance
+        self.trades.destroy_all # removes all associated trades for that user from the trades table
+        puts "Your account has been closed, your total net worth is $#{self.balance}" # displays users net worth
+    end
 
 end

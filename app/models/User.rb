@@ -5,9 +5,9 @@ class User < ActiveRecord::Base
 
 # prompt user to deposit money into specified user :balance and displays balance
     def make_deposit(prompt)
-        amount = prompt.ask("Please enter the amount you'd like to deposit:")
+        amount = prompt.ask("Enter the amount you'd like to deposit:")
         self.balance += amount.to_f
-        puts "Your account balance is $#{self.balance.round(2)}."
+        puts "Your current account balance is $#{self.balance.round(2)}"
         self.save
     end
 
@@ -15,7 +15,7 @@ class User < ActiveRecord::Base
     def make_trade(prompt, user)
         stock_name = search_stock_symbol(prompt)
         # puts "The current stock price for #{stock_name.stock_symbol} is #{stock_name.current_price}"
-        puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase"
+        puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase:"
         stock_qty = gets.chomp.to_i
         if stock_qty <= 0
             puts "You have entered an invalid number"
@@ -25,10 +25,10 @@ class User < ActiveRecord::Base
         if self.balance > trade_total
             self.update(balance: self.balance -= trade_total)
             Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_qty, stock_price_when_purchased: stock_name.current_price)
-            puts "You purchased #{stock_qty} stocks of #{stock_name.stock_symbol} for a total of $#{trade_total}"
-            puts "Your balance is now $#{self.balance.round(2)}"
+            puts "You purchased #{stock_qty} stocks of #{stock_name.stock_symbol} for a total of $#{trade_total.round(2)}"
+            puts "Your current available balance is $#{self.balance.round(2)}"
         else
-            puts "You do not have sufficient funds to complete this transaction, please try to purchase a smaller amount"
+            puts "You do not have sufficient funds to complete this transaction, please try to purchase a smaller amount."
             main_menu(prompt, self)
         end
     end
@@ -62,7 +62,7 @@ class User < ActiveRecord::Base
         end
         self.update(balance: self.balance += total_amount) # adds the total amount to the users balance
         self.trades.destroy_all # removes all associated trades for that user from the trades table
-        puts "Your account has been closed, your total net worth is $#{self.balance}" # displays users net worth
+        puts "Your account has been closed and funds have been transferred to your account, your current balance is $#{self.balance}" # displays users net worth
     end
 
 end

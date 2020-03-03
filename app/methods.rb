@@ -23,7 +23,7 @@ def search_stock_symbol(prompt)
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
     stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array)
     found_stock = find_stock(stock_name)
-    puts "Stock #{stock_name} current price is $#{found_stock.current_price}"
+    puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
     return found_stock
 end
 
@@ -41,7 +41,7 @@ end
 ## responds with "Hello, username" and returns user as a variable
 def search_username(prompt)
     # prompt = TTY::Prompt.new
-    user_name = prompt.ask("Please enter your username")
+    user_name = prompt.ask("Please enter your username:")
     if !find_username(user_name)
         puts "We could not locate and account with that username, let's create a new account for you."
         create_user(prompt)
@@ -80,15 +80,3 @@ def stock_price_updater
     bar.advance(4)
     end 
 end
-
-
-
-
-
-# allows user to make a trade on a stock
-
-#1386.32
-#381.05
-#196.44
-#1953.95
-#743.62

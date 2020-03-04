@@ -2,7 +2,11 @@ require_relative '../config/environment'
 
 puts "WELCOME TO LEE-TRADE!"
 
-user_cli
+# user_cli
+
+
+ryan = User.find(4)
+p ryan.sell_stocks
 
 # search_username
 # calls method from modules.rb

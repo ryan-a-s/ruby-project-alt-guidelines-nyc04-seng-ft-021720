@@ -37,7 +37,7 @@ class User < ActiveRecord::Base
     def check_stocks
         # groups stocks owned by specified user and sums up the quantity per stock symbol
        # total = 0 
-       array = []
+        array = []
         stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
         stocks_qty.each do |key, value|
             stock_price = (find_stock(key).current_price * value)
@@ -49,6 +49,22 @@ class User < ActiveRecord::Base
         table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Price per share'], rows: array
         puts table.render(:unicode)
         return stocks_qty # used by close_account
+    end 
+
+
+    
+
+    def sell_stocks
+        prompt = TTY::Prompt.new
+        stock_name = search_stock_symbol(prompt)
+        stock_name_string = stock_name.stock_symbol
+        self.stocks.where(stock_symbol: stock_name).sum(:stock_qty)
+        stock_quantity = gets.chomp.to_i
+        if stock_quantity > self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty)
+            puts "You do not have enough shares to sell"
+        end 
+        stock_quantity = (stock_quantity * -1 )
+        Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_quantity, stock_price_when_purchased: stock_name.current_price)
     end 
 
     # closes account and adds all funds to users :balance

@@ -49,7 +49,7 @@ def search_username(prompt)
         user = create_user(prompt)
     else
         user = find_username(user_name)
-        puts "Hello, #{user.name}!"
+        puts "Hello, #{user.name}, your current balance is $#{user.balance.round(2)}!"
     end
     return user
 end

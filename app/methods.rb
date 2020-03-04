@@ -11,14 +11,19 @@ end
 # user CLI menu structure
 def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
-        # menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
         menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
         menu.choice 'View Portfolio', -> {user.check_stocks(prompt, user)}
         menu.choice 'Make a Trade', -> {user.make_trade(prompt)}
         menu.choice 'Make a Sale', -> {user.sell_stocks(prompt, user)}
         menu.choice 'Close Account', -> {user.close_account}
-        menu.choice 'Exit', -> {puts "See you soon #{user.name}!"}
+        menu.choice 'Exit', -> {exit_app}
     end    
+end
+
+def exit_app
+    puts `clear`
+    puts "Thank you for using Lee-Trade!"
+    exit
 end
 
 # prompts user to search for stock symbol and displays symbol with current price
@@ -45,11 +50,11 @@ def search_username(prompt)
     # prompt = TTY::Prompt.new
     user_name = prompt.ask("Please enter your username:")
     if !find_username(user_name)
-        puts "We could not locate and account with that username, let's create a new account for you."
         user = create_user(prompt)
     else
         user = find_username(user_name)
-        puts "Hello, #{user.name}, your current balance is $#{user.balance.round(2)}!"
+        puts `clear`
+        puts "Hello, #{user.name}, your current balance is " + "$#{user.balance.round(2)}!".colorize(:green)
     end
     return user
 end
@@ -57,7 +62,9 @@ end
 # prompt user to create a new user account with a starting balance of 50_000
 ## auto-create username
 def create_user(prompt)
+    puts `clear`
     # prompt = TTY::Prompt.new
+    puts "We could not locate and account with that username, let's create a new account for you."
     full_name = prompt.ask("Please enter your full name:")
     user_name = full_name.downcase.delete(' ')
     User.create(name: full_name, username: user_name, balance: 50_000)
@@ -74,7 +81,7 @@ def stock_price_updater
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
     
     # create a visual progress bar to indicate the API data sync progress
-    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent", total: 20)
+    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 21)
 
     stock_array.each do |stock_name|
         
@@ -91,6 +98,6 @@ def stock_price_updater
         Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
         
         #advances the progress bar after each stocks API call
-        bar.advance(4)
+        bar.advance(3)
     end 
 end

@@ -28,16 +28,20 @@ class User < ActiveRecord::Base
         if self.balance > trade_total
             self.update(balance: self.balance -= trade_total)
             Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_qty, stock_price_when_purchased: stock_name.current_price)
-            puts "You purchased #{stock_qty} stocks of #{stock_name.stock_symbol} for a total of $#{trade_total.round(2)}"
-            puts "Your current available balance is $#{self.balance.round(2)}"
+            puts `clear`
+            puts "You purchased #{stock_qty} stocks of #{stock_name.stock_symbol} for a total of" + " $#{trade_total.round(2)}".colorize(:green) + " at $#{stock_name.current_price} per share."
+            puts "Your current available balance is " + "$#{self.balance.round(2)}".colorize(:green)
         else
-            puts "You do not have sufficient funds to complete this transaction, please try to purchase a smaller amount."
+            puts `clear`
+            puts "You do not have sufficient funds to complete this transaction, please try to purchase a smaller amount.".colorize(:red)
         end
         main_menu(prompt, self)
     end
 
     # allow user to sell stocks based on their existing share inventory
     def sell_stocks(prompt, user)
+        puts `clear`
+        user.check_stocks(prompt, user)
         stock_name = search_stock_symbol(prompt)
         stock_name_string = stock_name.stock_symbol
         current_stock_qty = self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty)
@@ -59,6 +63,7 @@ class User < ActiveRecord::Base
     # checking all stocks owned by user and the associated shares for each
     def check_stocks(prompt, user)
         # groups stocks owned by specified user and sums up the quantity per stock symbol
+        puts `clear`
         array = []
         stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
 

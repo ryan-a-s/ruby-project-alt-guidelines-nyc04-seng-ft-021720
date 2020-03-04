@@ -10,12 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_03_200123) do
+ActiveRecord::Schema.define(version: 2020_03_04_163530) do
 
   create_table "stocks", force: :cascade do |t|
     t.string "stock_symbol"
     t.float "current_price"
     t.string "category"
+    t.float "yesterdays_price"
   end
 
   create_table "trades", force: :cascade do |t|

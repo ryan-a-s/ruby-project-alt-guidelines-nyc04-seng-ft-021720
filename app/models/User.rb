@@ -29,31 +29,54 @@ class User < ActiveRecord::Base
             puts "Your current available balance is $#{self.balance.round(2)}"
         else
             puts "You do not have sufficient funds to complete this transaction, please try to purchase a smaller amount."
-            main_menu(prompt, self)
         end
+        main_menu(prompt, self)
+    end
+
+    # allow user to sell stocks based on their existing share inventory
+    def sell_stocks(prompt, user)
+        stock_name = search_stock_symbol(prompt)
+        stock_name_string = stock_name.stock_symbol
+        self.stocks.where(stock_symbol: stock_name).sum(:stock_qty)
+        stock_quantity = gets.chomp.to_i
+        if stock_quantity > self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty) || stock_quantity == 0 
+            puts "You do not have enough shares to sell"
+            main_menu(prompt, self)
+        else
+            total_price = (stock_quantity * stock_name.current_price)     
+            stock_quantity = (stock_quantity * -1 )
+            Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_quantity, stock_price_when_purchased: stock_name.current_price)
+            self.update(balance: self.balance += total_price )
+            puts "You have sold #{stock_quantity * -1} shares of #{stock_name.stock_symbol} for a total of $#{total_price}"
+        end
+        main_menu(prompt, self)
     end
 
     # checking all stocks owned by user and the associated shares for each
-    def check_stocks
+    def check_stocks(prompt, user)
         # groups stocks owned by specified user and sums up the quantity per stock symbol
-       # total = 0 
-       array = []
+        array = []
         stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
+
         stocks_qty.each do |key, value|
-            stock_price = (find_stock(key).current_price * value)
-            #total += stock_price
-            array.push([key, value, "$#{find_stock(key).current_price}"])
-           # puts "You have #{value} shares of #{key} valued at a total amount of $#{stock_price.to_f.round(2)}" # displays the amount of shares per stock symbol
+            current_price = find_stock(key).current_price
+            yesterdays_price = find_stock(key).yesterdays_price
+            differential = ((yesterdays_price - current_price).abs / yesterdays_price)*100
+            if current_price > yesterdays_price
+                array.push([key, value, "$#{current_price}", "$#{yesterdays_price}", "+#{differential.round(2)}".colorize(:green)])
+            else
+                array.push([key, value, "$#{current_price}", "$#{yesterdays_price}", "-#{differential.round(2)}".colorize(:red)])  
+            end
         end
-        #puts "You have a total portfolio value of $#{total}"
-        table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Price per share'], rows: array
+
+        table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Todays Share Price', 'Yesterdays Share Price', '% Change'], rows: array
         puts table.render(:unicode)
-        return stocks_qty # used by close_account
+        main_menu(prompt, self)
     end 
 
     # closes account and adds all funds to users :balance
     def close_account
-        stocks_qty = check_stocks
+        stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
         total_amount = 0 # sets variable total_amount to 0
         # iterates through each stock owned by the user, pulls the current price from the stock table
         ## and muplies it by the quantity of stocks owned by user

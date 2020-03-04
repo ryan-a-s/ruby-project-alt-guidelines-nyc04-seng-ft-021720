@@ -11,8 +11,9 @@ def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
         menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
         menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
-        menu.choice 'View Portfolio', -> {user.check_stocks}
+        menu.choice 'View Portfolio', -> {user.check_stocks(prompt, user)}
         menu.choice 'Make a Trade', -> {user.make_trade(prompt, user)}
+        menu.choice 'Make a Sale', -> {user.sell_stocks(prompt, user)}
         menu.choice 'Close Account', -> {user.close_account}
         menu.choice 'Exit', -> {puts "See you soon #{user.name}!"}
     end    
@@ -67,16 +68,27 @@ def runner
     user = search_username
 end
 
+# run an API call to pull latest data for our stock price based on stock symbol
 def stock_price_updater
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
     
+    # create a visual progress bar to indicate the API data sync progress
     bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent", total: 20)
 
     stock_array.each do |stock_name|
-    stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1min&outputsize=1&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
-    stock_price = JSON.parse(stock_api.body)
-    price = stock_price["values"][0]["close"].to_f.round(2)
-    Stock.where('stock_symbol LIKE ?', stock_name).update_all(current_price: price)
-    bar.advance(4)
+        
+        # pulls current price of each stock
+        stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1min&outputsize=1&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
+        stock_price = JSON.parse(stock_api.body)
+        price = stock_price["values"][0]["close"].to_f.round(2)
+        Stock.where('stock_symbol LIKE ?', stock_name).update_all(current_price: price)
+
+        # pulls yesterdays price of each stock
+        stock_yesterday_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1day&outputsize=2&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
+        stock_yesterday_price = JSON.parse(stock_yesterday_api.body)
+        yesterdays_price = stock_yesterday_price["values"][1]["close"].to_f.round(2)
+        Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
+    
+        bar.advance(4)
     end 
 end

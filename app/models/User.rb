@@ -3,7 +3,7 @@ class User < ActiveRecord::Base
     has_many :trades
     has_many :stocks, through: :trades
 
-# prompt user to deposit money into specified user :balance and displays balance
+    # prompt user to deposit money into specified user :balance and displays balance
     def make_deposit(prompt)
         amount = prompt.ask("Enter the amount you'd like to deposit:")
         self.balance += amount.to_f
@@ -11,17 +11,19 @@ class User < ActiveRecord::Base
         self.save
     end
 
-#Makes a trade that corresponds with the user input, if the user does not have a suitable balance it rejects the trade.
+    # makes a trade that corresponds with the user input, if the user does not have a suitable balance it rejects the trade.
     def make_trade(prompt, user)
         stock_name = search_stock_symbol(prompt)
-        # puts "The current stock price for #{stock_name.stock_symbol} is #{stock_name.current_price}"
         puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase:"
         stock_qty = gets.chomp.to_i
+
         if stock_qty <= 0
             puts "You have entered an invalid number"
             main_menu(prompt, self)
         end 
+
         trade_total = (stock_qty * stock_name.current_price).to_f
+
         if self.balance > trade_total
             self.update(balance: self.balance -= trade_total)
             Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_qty, stock_price_when_purchased: stock_name.current_price)

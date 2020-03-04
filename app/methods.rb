@@ -1,5 +1,6 @@
 require_relative '../config/environment'
 
+# calls the main_menu method using TTY and runs an API call to pull latest stock price data
 def user_cli
     prompt = TTY::Prompt.new
     user = search_username(prompt)
@@ -7,6 +8,7 @@ def user_cli
     main_menu(prompt, user)
 end
 
+# user CLI menu structure
 def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
         menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
@@ -27,8 +29,6 @@ def search_stock_symbol(prompt)
     puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
     return found_stock
 end
-
-
 
 def find_stock(stock_name)
     Stock.find_by(stock_symbol: stock_name)
@@ -88,7 +88,8 @@ def stock_price_updater
         stock_yesterday_price = JSON.parse(stock_yesterday_api.body)
         yesterdays_price = stock_yesterday_price["values"][1]["close"].to_f.round(2)
         Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
-    
+        
+        #advances the progress bar after each stocks API call
         bar.advance(4)
     end 
 end

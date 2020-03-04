@@ -65,13 +65,13 @@ class User < ActiveRecord::Base
             yesterdays_price = find_stock(key).yesterdays_price
             differential = ((yesterdays_price - current_price).abs / yesterdays_price)*100
             if current_price > yesterdays_price
-                array.push([key, value, "$#{current_price}", "$#{yesterdays_price}", "+#{differential.round(2)}".colorize(:green)])
+                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "+#{differential.round(2)}".colorize(:green)])
             else
-                array.push([key, value, "$#{current_price}", "$#{yesterdays_price}", "-#{differential.round(2)}".colorize(:red)])  
+                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "-#{differential.round(2)}".colorize(:red)])  
             end
         end
 
-        table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Todays Share Price', 'Yesterdays Share Price', '% Change'], rows: array
+        table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Yesterdays Share Price', 'Todays Share Price', '% Change'], rows: array
         puts table.render(:unicode)
         main_menu(prompt, self)
     end 

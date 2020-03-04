@@ -29,7 +29,7 @@ end
 # prompts user to search for stock symbol and displays symbol with current price
 def search_stock_symbol(prompt)
     stock_array = Stock.all.map{|stock| stock.stock_symbol + ": $#{stock.current_price}"}
-    stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array)
+    stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array, per_page: 10)
     stock_name = stock_name.split(":")[0]
     found_stock = find_stock(stock_name)
     # puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"

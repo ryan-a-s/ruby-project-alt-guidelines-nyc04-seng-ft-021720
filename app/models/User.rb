@@ -9,10 +9,11 @@ class User < ActiveRecord::Base
         self.balance += amount.to_f
         puts "Your current account balance is $#{self.balance.round(2)}"
         self.save
+        main_menu(prompt, self)
     end
 
     # makes a trade that corresponds with the user input, if the user does not have a suitable balance it rejects the trade.
-    def make_trade(prompt, user)
+    def make_trade(prompt)
         stock_name = search_stock_symbol(prompt)
         puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase:"
         stock_qty = gets.chomp.to_i
@@ -39,18 +40,19 @@ class User < ActiveRecord::Base
     def sell_stocks(prompt, user)
         stock_name = search_stock_symbol(prompt)
         stock_name_string = stock_name.stock_symbol
-        self.stocks.where(stock_symbol: stock_name).sum(:stock_qty)
-        stock_quantity = gets.chomp.to_i
-        if stock_quantity > self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty) || stock_quantity == 0 
+        current_stock_qty = self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty)
+        quantity = gets.chomp.to_i
+        if quantity > current_stock_qty || quantity == 0 
             puts "You do not have enough shares to sell"
             main_menu(prompt, self)
         else
-            total_price = (stock_quantity * stock_name.current_price)     
-            stock_quantity = (stock_quantity * -1 )
-            Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_quantity, stock_price_when_purchased: stock_name.current_price)
+            total_price = (quantity * stock_name.current_price)     
+            quantity = (quantity * -1 )
+            Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: quantity, stock_price_when_purchased: stock_name.current_price)
             self.update(balance: self.balance += total_price )
-            puts "You have sold #{stock_quantity * -1} shares of #{stock_name.stock_symbol} for a total of $#{total_price}"
+            puts "You have sold #{quantity * -1} shares of #{stock_name.stock_symbol} for a total of $#{total_price}"
         end
+        self.trades.where(stock_id: stock_name.id).destroy_all if self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty) == 0
         main_menu(prompt, self)
     end
 
@@ -87,7 +89,7 @@ class User < ActiveRecord::Base
         end
         self.update(balance: self.balance += total_amount) # adds the total amount to the users balance
         self.trades.destroy_all # removes all associated trades for that user from the trades table
-        puts "Your account has been closed and funds have been transferred to your account, your current balance is $#{self.balance}" # displays users net worth
+        puts "Your account has been closed and funds have been transferred to your account, your current balance is $#{self.balance.round(2)}" # displays users net worth
     end
 
 end

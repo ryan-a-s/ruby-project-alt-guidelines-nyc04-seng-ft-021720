@@ -11,10 +11,10 @@ end
 # user CLI menu structure
 def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
-        menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
+        # menu.choice 'Search Stocks', -> {search_stock_symbol(prompt)}
         menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
         menu.choice 'View Portfolio', -> {user.check_stocks(prompt, user)}
-        menu.choice 'Make a Trade', -> {user.make_trade(prompt, user)}
+        menu.choice 'Make a Trade', -> {user.make_trade(prompt)}
         menu.choice 'Make a Sale', -> {user.sell_stocks(prompt, user)}
         menu.choice 'Close Account', -> {user.close_account}
         menu.choice 'Exit', -> {puts "See you soon #{user.name}!"}
@@ -23,11 +23,12 @@ end
 
 # prompts user to search for stock symbol and displays symbol with current price
 def search_stock_symbol(prompt)
-    stock_array = Stock.all.map{|stock| stock.stock_symbol}
+    stock_array = Stock.all.map{|stock| stock.stock_symbol + ": $#{stock.current_price}"}
     stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array)
+    stock_name = stock_name.split(":")[0]
     found_stock = find_stock(stock_name)
     puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
-    return found_stock
+    found_stock
 end
 
 def find_stock(stock_name)
@@ -45,7 +46,7 @@ def search_username(prompt)
     user_name = prompt.ask("Please enter your username:")
     if !find_username(user_name)
         puts "We could not locate and account with that username, let's create a new account for you."
-        create_user(prompt)
+        user = create_user(prompt)
     else
         user = find_username(user_name)
         puts "Hello, #{user.name}!"
@@ -60,8 +61,8 @@ def create_user(prompt)
     full_name = prompt.ask("Please enter your full name:")
     user_name = full_name.downcase.delete(' ')
     User.create(name: full_name, username: user_name, balance: 50_000)
-    puts "Welcome #{full_name}! Your username to log-in is #{user_name}"
-    return user_name
+    puts "Welcome #{full_name}! Your username to log-in is" + " #{user_name}".colorize(:green)
+    return User.find_by(username: user_name)
 end
 
 def runner

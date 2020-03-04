@@ -13,7 +13,10 @@ class User < ActiveRecord::Base
     end
 
     # makes a trade that corresponds with the user input, if the user does not have a suitable balance it rejects the trade.
-    def make_trade(prompt)
+    def make_trade(prompt, user)
+        puts `clear`
+        view_my_stocks(prompt, user)
+        puts "Your available balance is " + "$#{self.balance.round(2)}".colorize(:green)
         stock_name = search_stock_symbol(prompt)
         puts "Please enter the quantity of #{stock_name.stock_symbol} you'd like to purchase:"
         stock_qty = gets.chomp.to_i
@@ -41,13 +44,14 @@ class User < ActiveRecord::Base
     # allow user to sell stocks based on their existing share inventory
     def sell_stocks(prompt, user)
         puts `clear`
-        user.check_stocks(prompt, user)
+        view_my_stocks(prompt, user)
         stock_name = search_stock_symbol(prompt)
         stock_name_string = stock_name.stock_symbol
         current_stock_qty = self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty)
+        puts "Please enter the amount of #{stock_name_string} shares you'd like to sell:"
         quantity = gets.chomp.to_i
         if quantity > current_stock_qty || quantity == 0 
-            puts "You do not have enough shares to sell"
+            puts "You do not have enough shares to sell".colorize(:red)
             main_menu(prompt, self)
         else
             total_price = (quantity * stock_name.current_price)     
@@ -62,6 +66,13 @@ class User < ActiveRecord::Base
 
     # checking all stocks owned by user and the associated shares for each
     def check_stocks(prompt, user)
+        view_my_stocks(prompt, self)
+        main_menu(prompt, self)
+    end 
+
+    # this is used to display all stocks owned by user without returning them to the main menu
+    ## e.g. used with trade and sell stock methods
+    def view_my_stocks(prompt, user)
         # groups stocks owned by specified user and sums up the quantity per stock symbol
         puts `clear`
         array = []
@@ -80,8 +91,7 @@ class User < ActiveRecord::Base
 
         table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Yesterdays Share Price', 'Todays Share Price', '% Change'], rows: array
         puts table.render(:unicode)
-        main_menu(prompt, self)
-    end 
+    end
 
     # closes account and adds all funds to users :balance
     def close_account

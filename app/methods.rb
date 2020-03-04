@@ -4,7 +4,7 @@ require_relative '../config/environment'
 def user_cli
     prompt = TTY::Prompt.new
     user = search_username(prompt)
-    stock_price_updater
+    # stock_price_updater
     main_menu(prompt, user)
 end
 
@@ -13,7 +13,7 @@ def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
         menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
         menu.choice 'View Portfolio', -> {user.check_stocks(prompt, user)}
-        menu.choice 'Make a Trade', -> {user.make_trade(prompt)}
+        menu.choice 'Make a Trade', -> {user.make_trade(prompt, user)}
         menu.choice 'Make a Sale', -> {user.sell_stocks(prompt, user)}
         menu.choice 'Close Account', -> {user.close_account}
         menu.choice 'Exit', -> {exit_app}
@@ -32,7 +32,7 @@ def search_stock_symbol(prompt)
     stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array)
     stock_name = stock_name.split(":")[0]
     found_stock = find_stock(stock_name)
-    puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
+    # puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
     found_stock
 end
 

@@ -78,25 +78,29 @@ end
 # run an API call to pull latest data for our stock price based on stock symbol
 def stock_price_updater
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
-    
     # create a visual progress bar to indicate the API data sync progress
-    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 24)
-
+    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 100)
     stock_array.each do |stock_name|
-        
         # pulls current price of each stock
-        stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1min&outputsize=1&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
-        stock_price = JSON.parse(stock_api.body)
-        price = stock_price["values"][0]["close"].to_f.round(2)
-        Stock.where('stock_symbol LIKE ?', stock_name).update_all(current_price: price)
-
+        stock_api_call(stock_name,"1min", "1","current_price",0)
         # pulls yesterdays price of each stock
-        stock_yesterday_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1day&outputsize=2&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
-        stock_yesterday_price = JSON.parse(stock_yesterday_api.body)
-        yesterdays_price = stock_yesterday_price["values"][1]["close"].to_f.round(2)
-        Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
-        
+        stock_api_call(stock_name,"1day", "2","yesterdays_price",1)        
         #advances the progress bar after each stocks API call
-        bar.advance(0.75)
+        bar.advance((100.0/Stock.all.count))
     end 
 end
+
+def stock_api_call(stock_name, interval, output_size,column_name, index)
+    stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=#{interval}&outputsize=#{output_size}&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
+    stock_price = JSON.parse(stock_api.body)
+    stock_price = stock_price["values"][index]["close"].to_f.round(2)
+    Stock.where('stock_symbol LIKE ?', stock_name).update_all("#{column_name}": stock_price)
+end
+
+
+# stock_api_call(stock_name,"1day", "2", yesterdays_price,1)
+
+# stock_yesterday_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1day&outputsize=2&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
+# stock_yesterday_price = JSON.parse(stock_yesterday_api.body)
+# yesterdays_price = stock_yesterday_price["values"][1]["close"].to_f.round(2)
+# Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)

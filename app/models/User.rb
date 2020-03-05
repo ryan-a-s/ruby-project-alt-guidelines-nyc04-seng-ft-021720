@@ -82,16 +82,23 @@ class User < ActiveRecord::Base
             current_price = find_stock(key).current_price
             yesterdays_price = find_stock(key).yesterdays_price
             differential = ((yesterdays_price - current_price).abs / yesterdays_price)*100
-            if current_price > yesterdays_price
-                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "+#{differential.round(2)}".colorize(:green)])
-            else
-                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "-#{differential.round(2)}".colorize(:red)])  
-            end
+            
+            differential_checker(current_price, yesterdays_price, key, value, array,differential)
         end
 
         table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Yesterdays Share Price', 'Todays Share Price', '% Change'], rows: array
         puts table.render(:unicode)
     end
+
+
+    def differential_checker(current_price, yesterdays_price, key, value, array, differential)
+        if current_price > yesterdays_price
+            array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "+#{differential.round(2)}".colorize(:green)])
+        else
+            array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "-#{differential.round(2)}".colorize(:red)])  
+        end
+    end
+
 
     # closes account and adds all funds to users :balance
     def close_account

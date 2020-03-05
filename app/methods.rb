@@ -4,7 +4,7 @@ require_relative '../config/environment'
 def user_cli
     prompt = TTY::Prompt.new
     user = search_username(prompt)
-    # stock_price_updater
+    stock_price_updater
     main_menu(prompt, user)
 end
 
@@ -32,7 +32,6 @@ def search_stock_symbol(prompt)
     stock_name = prompt.select("Please select the stock symbol you're looking for:", stock_array, per_page: 10)
     stock_name = stock_name.split(":")[0]
     found_stock = find_stock(stock_name)
-    # puts "Stock #{stock_name} current share price is $#{found_stock.current_price}"
     found_stock
 end
 
@@ -81,7 +80,7 @@ def stock_price_updater
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
     
     # create a visual progress bar to indicate the API data sync progress
-    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 21)
+    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 24)
 
     stock_array.each do |stock_name|
         
@@ -98,6 +97,6 @@ def stock_price_updater
         Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
         
         #advances the progress bar after each stocks API call
-        bar.advance(3)
+        bar.advance(0.75)
     end 
 end

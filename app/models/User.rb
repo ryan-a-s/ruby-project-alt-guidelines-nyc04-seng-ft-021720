@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
     def make_deposit(prompt)
         amount = prompt.ask("Enter the amount you'd like to deposit:")
         self.balance += amount.to_f
-        puts "Your current account balance is $#{self.balance.round(2)}"
+        puts "Your current account balance is " + "$#{self.balance.round(2)}".colorize(:green)
         self.save
         main_menu(prompt, self)
     end

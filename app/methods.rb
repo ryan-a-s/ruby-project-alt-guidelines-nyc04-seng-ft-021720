@@ -1,6 +1,6 @@
 require_relative '../config/environment'
 
-# calls the main_menu method using TTY and runs an API call to pull latest stock price data
+# calls the main_menu method and runs an API call to pull latest stock price data
 def user_cli
     prompt = TTY::Prompt.new
     user = search_username(prompt)
@@ -8,7 +8,7 @@ def user_cli
     main_menu(prompt, user)
 end
 
-# user CLI menu structure
+# user CLI menu structure, takes both prompt and user arguments from #user_cli to maintain session
 def main_menu(prompt, user)
     prompt.select("What would you like to do today?") do |menu|
         menu.choice 'Deposit Money', -> {user.make_deposit(prompt)}
@@ -20,6 +20,7 @@ def main_menu(prompt, user)
     end    
 end
 
+# exits out of #main_menu
 def exit_app
     puts `clear`
     puts "Thank you for using Lee-Trade!"
@@ -43,8 +44,7 @@ def find_username(user_name)
     User.find_by(username: user_name)
 end 
 
-# prompts user to enter their username, makes sure username is valid
-## responds with "Hello, username" and returns user as a variable
+# prompts user to enter their username. if valid, logs user in and shows current balance. if invalid, sends to #create_user
 def search_username(prompt)
     # prompt = TTY::Prompt.new
     user_name = prompt.ask("Please enter your username:")
@@ -58,8 +58,7 @@ def search_username(prompt)
     return user
 end
 
-# prompt user to create a new user account with a starting balance of 50_000
-## auto-create username
+# prompt user to create a new user account with a starting balance of 50_000, populates username by downcasing full name and stripping whitespace
 def create_user(prompt)
     puts `clear`
     # prompt = TTY::Prompt.new
@@ -78,25 +77,22 @@ end
 # run an API call to pull latest data for our stock price based on stock symbol
 def stock_price_updater
     stock_array = Stock.all.map{|stock| stock.stock_symbol}
-    
     # create a visual progress bar to indicate the API data sync progress
-    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 24)
-
+    bar = TTY::ProgressBar.new("Updating Current Stock Prices [:bar] :percent".colorize(:yellow), total: 100)
     stock_array.each do |stock_name|
-        
         # pulls current price of each stock
-        stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1min&outputsize=1&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
-        stock_price = JSON.parse(stock_api.body)
-        price = stock_price["values"][0]["close"].to_f.round(2)
-        Stock.where('stock_symbol LIKE ?', stock_name).update_all(current_price: price)
-
+        stock_api_call(stock_name,"1min", "1","current_price",0)
         # pulls yesterdays price of each stock
-        stock_yesterday_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=1day&outputsize=2&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
-        stock_yesterday_price = JSON.parse(stock_yesterday_api.body)
-        yesterdays_price = stock_yesterday_price["values"][1]["close"].to_f.round(2)
-        Stock.where('stock_symbol LIKE ?', stock_name).update_all(yesterdays_price: yesterdays_price)
-        
-        #advances the progress bar after each stocks API call
-        bar.advance(0.75)
+        stock_api_call(stock_name,"1day", "2","yesterdays_price",1)        
+        # advances the progress bar after each stocks API call
+        bar.advance((100.0/Stock.all.count))
     end 
+end
+
+# API call with variables to allow return data to be customized
+def stock_api_call(stock_name, interval, output_size,column_name, index)
+    stock_api = RestClient.get("https://api.twelvedata.com/time_series?symbol=#{stock_name}&interval=#{interval}&outputsize=#{output_size}&format=JSON&apikey=94ceb38da2c04057b673157b6a750c5d")
+    stock_price = JSON.parse(stock_api.body)
+    stock_price = stock_price["values"][index]["close"].to_f.round(2)
+    Stock.where('stock_symbol LIKE ?', stock_name).update_all("#{column_name}": stock_price)
 end

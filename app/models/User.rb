@@ -66,6 +66,7 @@ class User < ActiveRecord::Base
 
     # checking all stocks owned by user and the associated shares for each, calls on #view_my_stocks to display table
     def check_stocks(prompt, user)
+        puts `clear`
         view_my_stocks(prompt, self)
         main_menu(prompt, self)
     end 
@@ -74,11 +75,7 @@ class User < ActiveRecord::Base
     ## e.g. used with trade and sell stock methods
     def view_my_stocks(prompt, user)
         # groups stocks owned by specified user and sums up the quantity per stock symbol
-<<<<<<< HEAD
-        puts `clear`
-=======
        # total = 0 
->>>>>>> 2337a71a8131c25dbecce026c5d391e6854a2cb4
         array = []
         stocks_qty = self.stocks.group(:stock_symbol).sum(:stock_qty)
 
@@ -86,11 +83,8 @@ class User < ActiveRecord::Base
             current_price = find_stock(key).current_price
             yesterdays_price = find_stock(key).yesterdays_price
             differential = ((yesterdays_price - current_price).abs / yesterdays_price)*100
-            if current_price > yesterdays_price
-                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "+#{differential.round(2)}".colorize(:green)])
-            else
-                array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "-#{differential.round(2)}".colorize(:red)])  
-            end
+            
+            differential_checker(current_price, yesterdays_price, key, value, array,differential)
         end
 
         table = TTY::Table.new header: ['Stock Symbol', 'Quantity', 'Yesterdays Share Price', 'Todays Share Price', '% Change'], rows: array
@@ -98,20 +92,14 @@ class User < ActiveRecord::Base
     end
 
 
-    
+    def differential_checker(current_price, yesterdays_price, key, value, array, differential)
+        if current_price > yesterdays_price
+            array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "+#{differential.round(2)}".colorize(:green)])
+        else
+            array.push([key, value, "$#{yesterdays_price}", "$#{current_price}", "-#{differential.round(2)}".colorize(:red)])  
+        end
+    end
 
-    def sell_stocks
-        prompt = TTY::Prompt.new
-        stock_name = search_stock_symbol(prompt)
-        stock_name_string = stock_name.stock_symbol
-        self.stocks.where(stock_symbol: stock_name).sum(:stock_qty)
-        stock_quantity = gets.chomp.to_i
-        if stock_quantity > self.stocks.where(stock_symbol: stock_name_string).sum(:stock_qty)
-            puts "You do not have enough shares to sell"
-        end 
-        stock_quantity = (stock_quantity * -1 )
-        Trade.create(stock_id: stock_name.id, user_id: self.id, stock_qty: stock_quantity, stock_price_when_purchased: stock_name.current_price)
-    end 
 
     # closes account and adds all funds to users :balance
     def close_account

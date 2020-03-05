@@ -71,7 +71,7 @@ class User < ActiveRecord::Base
         main_menu(prompt, self)
     end 
 
-    # displaysa table of all stocks owned by user without returning them to the main menu
+    # displays a table of all stocks owned by user without returning them to the main menu
     ## e.g. used with trade and sell stock methods
     def view_my_stocks(prompt, user)
         # groups stocks owned by specified user and sums up the quantity per stock symbol

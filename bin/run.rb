@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require_relative '../config/environment'
 
 # prints a sick ASCII image
